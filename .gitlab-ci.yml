@@ -1,0 +1,25 @@
+include:
+- project : 'ci-tools/container-image-ci-templates'
+  file : 'kaniko-image.gitlab-ci.yml'
+  ref: master
+
+variables:
+  # The `HARBOR_REGISTRY_*` variables are set on the paas-tools group-level.
+  CI_REGISTRY_USER: "$HARBOR_REGISTRY_USER"
+  CI_REGISTRY_PASSWORD: "$HARBOR_REGISTRY_PASSWORD"
+  DOCKER_FILE_NAME: "2/Dockerfile.localdev"
+  IMAGE: "registry.cern.ch/openshift-jenkins/jenkins:custom-image"
+
+build:
+  extends: .build_kaniko
+  stage: build-provision-image
+  variables:
+    REGISTRY_IMAGE_PATH: "${IMAGE}"
+    PUSH_IMAGE: "true"
+  needs: [] # required to avoid dependency on pages job artifacts
+  # When there are changes in docker/**/*, the pipeline will run automatically to build and push new images.
+  # This pipeline runs automatically in order to save time.
+  # It will build and push a latest image tag to the registry.
+  # see https://docs.gitlab.com/ee/ci/yaml/#rules
+  rules:
+    - when: manual
